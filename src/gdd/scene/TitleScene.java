@@ -6,8 +6,8 @@ import static gdd.Global.*;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Font;
 import java.awt.Image;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -27,8 +27,7 @@ public class TitleScene extends JPanel {
 
     public TitleScene(Game game) {
         this.game = game;
-        // initBoard();
-        // initTitle();
+        addKeyListener(new TAdapter());
     }
 
     private void initBoard() {
@@ -36,9 +35,9 @@ public class TitleScene extends JPanel {
     }
 
     public void start() {
-        addKeyListener(new TAdapter());
         setFocusable(true);
         setBackground(Color.black);
+        javax.swing.SwingUtilities.invokeLater(this::requestFocusInWindow);
 
         timer = new Timer(1000 / 60, new GameCycle());
         timer.start();
@@ -91,7 +90,25 @@ public class TitleScene extends JPanel {
         g.setColor(Color.black);
         g.fillRect(0, 0, d.width, d.height);
 
-        g.drawImage(image, 0, -80, d.width, d.height, this);
+        g.drawImage(image, 0, 0, d.width, d.height, this);
+        g.setColor(new Color(0, 0, 20, 145));
+        g.fillRoundRect(45, 70, d.width - 90, 180, 28, 28);
+
+        g.setColor(Color.white);
+        g.setFont(new Font("Dialog", Font.BOLD, 48));
+        String title = "GDD PROJECT 1";
+        int titleWidth = g.getFontMetrics().stringWidth(title);
+        g.drawString(title, (d.width - titleWidth) / 2, 142);
+        g.setColor(Color.cyan);
+        g.setFont(new Font("Dialog", Font.BOLD, 18));
+        String subtitle = "A SIDE-SCROLLING SPACE ODYSSEY";
+        int subtitleWidth = g.getFontMetrics().stringWidth(subtitle);
+        g.drawString(subtitle, (d.width - subtitleWidth) / 2, 180);
+        g.setColor(Color.white);
+        g.setFont(new Font("Dialog", Font.PLAIN, 16));
+        String team = "Khine Khant  •  Hein Oke Soe";
+        int teamWidth = g.getFontMetrics().stringWidth(team);
+        g.drawString(team, (d.width - teamWidth) / 2, 220);
 
         if (frame % 60 < 30) {
             g.setColor(Color.red);
@@ -99,19 +116,21 @@ public class TitleScene extends JPanel {
             g.setColor(Color.white);
         }
 
-        g.setFont(g.getFont().deriveFont(32f));
+        g.setFont(new Font("Dialog", Font.BOLD, 28));
         String text = "Press SPACE to Start";
         int stringWidth = g.getFontMetrics().stringWidth(text);
         int x = (d.width - stringWidth) / 2;
         // int stringHeight = g.getFontMetrics().getAscent();
         // int y = (d.height + stringHeight) / 2;
-        g.drawString(text, x, 600);
+        g.setColor(new Color(0, 0, 20, 185));
+        g.fillRoundRect(x - 25, 555, stringWidth + 50, 65, 22, 22);
+        g.setColor(frame % 60 < 30 ? Color.CYAN : Color.WHITE);
+        g.drawString(text, x, 598);
 
-        g.setColor(Color.gray);
-        g.setFont(g.getFont().deriveFont(10f));
-        g.drawString("Game by Chayapol", 10, 650);
+        g.setColor(Color.LIGHT_GRAY);
+        g.setFont(new Font("Dialog", Font.PLAIN, 13));
+        g.drawString("ARROWS move  •  SPACE fires  •  Collect power upgrades", 185, 650);
 
-        Toolkit.getDefaultToolkit().sync();
     }
 
     private void update() {
@@ -144,7 +163,7 @@ public class TitleScene extends JPanel {
             int key = e.getKeyCode();
             if (key == KeyEvent.VK_SPACE) {
                 // Load the next scene
-                game.loadScene2();
+                game.loadScene1();
             }
 
         }
