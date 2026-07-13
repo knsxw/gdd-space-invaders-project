@@ -1,52 +1,50 @@
 package gdd;
 
 import gdd.scene.Scene1;
+import gdd.scene.Scene2;
 import gdd.scene.TitleScene;
 import javax.swing.JFrame;
 
-public class Game extends JFrame  {
-
-    TitleScene titleScene;
-    Scene1 scene1;
+public class Game extends JFrame {
+    private final TitleScene titleScene;
+    private final Scene1 scene1;
+    private final Scene2 scene2;
 
     public Game() {
         titleScene = new TitleScene(this);
         scene1 = new Scene1(this);
-        initUI();
-        // loadTitle();
-        loadScene2();
-    }
-
-    private void initUI() {
-
-        setTitle("Space Invaders");
+        scene2 = new Scene2(this);
+        setTitle("Nebula Vanguard");
         setSize(Global.BOARD_WIDTH, Global.BOARD_HEIGHT);
-
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(false);
         setLocationRelativeTo(null);
+        loadTitle();
+    }
 
+    private void showScene(javax.swing.JPanel scene) {
+        getContentPane().removeAll();
+        add(scene);
+        revalidate();
+        repaint();
     }
 
     public void loadTitle() {
-        getContentPane().removeAll();
-        // add(new Title(this));
-        add(titleScene);
+        scene1.stop();
+        scene2.stop();
+        showScene(titleScene);
         titleScene.start();
-        revalidate();
-        repaint();
     }
 
     public void loadScene1() {
-        // ....
+        titleScene.stop();
+        showScene(scene1);
+        scene1.start();
     }
 
     public void loadScene2() {
-        getContentPane().removeAll();
-        add(scene1);
-        titleScene.stop();
-        scene1.start();
-        revalidate();
-        repaint();
+        scene1.stop();
+        showScene(scene2);
+        scene2.startWithProgress(scene1.getPlayer(), scene1.getScore());
     }
 }
