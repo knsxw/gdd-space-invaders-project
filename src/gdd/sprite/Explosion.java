@@ -25,7 +25,7 @@ public class Explosion extends Sprite {
         setImage(scaledImage);
     }
 
-    public void act(int direction) {
+    public void act() {
 
         // this.x += direction;
     }
