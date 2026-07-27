@@ -67,6 +67,7 @@ public class Scene1 extends JPanel {
     protected AudioPlayer bgMusicPlayer;
     protected AudioPlayer shotPlayer;
     protected AudioPlayer explodePlayer;
+    protected AudioPlayer powerupPlayer;
 
     public Scene1(Game game) {
         this(game, 1);
@@ -86,6 +87,7 @@ public class Scene1 extends JPanel {
             bgMusicPlayer = new AudioPlayer("src/audio/scene1.wav", false, true);
             shotPlayer = new AudioPlayer("src/audio/shot.wav", false, false);
             explodePlayer = new AudioPlayer("src/audio/explode.wav", false, false);
+            powerupPlayer = new AudioPlayer("src/audio/powerup.wav", false, false);
         } catch (Exception e) {
             System.err.println("Error initializing audio players: " + e.getMessage());
             e.printStackTrace();
@@ -251,8 +253,12 @@ public class Scene1 extends JPanel {
         for (PowerUp power : powerups) {
             power.act();
             if (power.isVisible() && hit(power.getX(), power.getY(), 34, 34,
-                    player.getX(), player.getY(), 48, 28))
+                    player.getX(), player.getY(), 48, 28)) {
                 power.upgrade(player);
+                if (powerupPlayer != null) {
+                    powerupPlayer.playOnce();
+                }
+            }
             if (power.getX() < -50)
                 power.die();
         }
