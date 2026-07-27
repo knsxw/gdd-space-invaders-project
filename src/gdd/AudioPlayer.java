@@ -41,6 +41,26 @@ public class AudioPlayer {
         clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
 
+    // constructor with options for autoplay and loop
+    public AudioPlayer(String filePath, boolean autoplay, boolean loop)
+            throws UnsupportedAudioFileException,
+            IOException, LineUnavailableException {
+        this.filePath = filePath;
+        audioInputStream
+                = AudioSystem.getAudioInputStream(new File(filePath).getAbsoluteFile());
+
+        clip = AudioSystem.getClip();
+        clip.open(audioInputStream);
+
+        if (autoplay) {
+            if (loop) {
+                clip.loop(Clip.LOOP_CONTINUOUSLY);
+            } else {
+                clip.start();
+            }
+        }
+    }
+
     public static void main(String[] args) {
         try {
             String filePath = "src/audio/title.wav";
@@ -102,6 +122,19 @@ public class AudioPlayer {
         //start the clip
         clip.start();
 
+        status = "play";
+    }
+
+    // Method to play the audio once (rewind and play, optimized for sound effects)
+    public void playOnce() {
+        if (clip == null) {
+            return;
+        }
+        if (clip.isRunning()) {
+            clip.stop();
+        }
+        clip.setFramePosition(0);
+        clip.start();
         status = "play";
     }
 

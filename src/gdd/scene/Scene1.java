@@ -1,5 +1,6 @@
 package gdd.scene;
 
+import gdd.AudioPlayer;
 import gdd.Game;
 import static gdd.Global.*;
 import gdd.powerup.MultiShot;
@@ -21,7 +22,7 @@ import java.util.Random;
 import javax.swing.*;
 
 public class Scene1 extends JPanel {
-    protected static final int FLIGHT_FRAMES = 60 * 60 * 5;
+    protected static final int FLIGHT_FRAMES = 60 * 30;
     private static final long STEP_NANOS = 1_000_000_000L / 60;
     private static final long MAX_ELAPSED_NANOS = STEP_NANOS * 5;
     private static final int[][] SHOT_SPREADS = { { 0 }, { -2, 2 }, { -3, 0, 3 }, { -5, -2, 2, 5 } };
@@ -63,6 +64,10 @@ public class Scene1 extends JPanel {
     private long lastTickNanos;
     private long accumulatedNanos;
 
+    protected AudioPlayer bgMusicPlayer;
+    protected AudioPlayer shotPlayer;
+    protected AudioPlayer explodePlayer;
+
     public Scene1(Game game) {
         this(game, 1);
     }
@@ -73,6 +78,18 @@ public class Scene1 extends JPanel {
         setBackground(new Color(3, 7, 22));
         setFocusable(true);
         addKeyListener(new Controls());
+        initAudio();
+    }
+
+    private void initAudio() {
+        try {
+            bgMusicPlayer = new AudioPlayer("src/audio/scene1.wav", false, true);
+            shotPlayer = new AudioPlayer("src/audio/shot.wav", false, false);
+            explodePlayer = new AudioPlayer("src/audio/explode.wav", false, false);
+        } catch (Exception e) {
+            System.err.println("Error initializing audio players: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void start() {
@@ -102,6 +119,14 @@ public class Scene1 extends JPanel {
         timer = new Timer(15, e -> cycle());
         timer.setCoalesce(true);
         timer.start();
+
+        if (bgMusicPlayer != null) {
+            try {
+                bgMusicPlayer.restart();
+            } catch (Exception e) {
+                System.err.println("Error starting stage music: " + e.getMessage());
+            }
+        }
     }
 
     public Player getPlayer() {
@@ -115,6 +140,13 @@ public class Scene1 extends JPanel {
     public void stop() {
         if (timer != null)
             timer.stop();
+        if (bgMusicPlayer != null) {
+            try {
+                bgMusicPlayer.stop();
+            } catch (Exception e) {
+                System.err.println("Error stopping stage music: " + e.getMessage());
+            }
+        }
     }
 
     private void cycle() {
@@ -247,6 +279,9 @@ public class Scene1 extends JPanel {
                         score += enemy.getPoints();
                         burst(enemy.getX() + ew / 2, enemy.getY() + eh / 2, Color.CYAN,
                                 enemy instanceof Boss ? 60 : 14);
+                        if (explodePlayer != null) {
+                            explodePlayer.playOnce();
+                        }
                     }
                 }
             }
@@ -333,6 +368,9 @@ public class Scene1 extends JPanel {
         player.damage();
         invulnerable = 105;
         burst(player.getX(), player.getY(), Color.RED, 18);
+        if (explodePlayer != null) {
+            explodePlayer.playOnce();
+        }
     }
 
     private void end(String text) {
@@ -355,6 +393,9 @@ public class Scene1 extends JPanel {
             return;
         for (int velocity : SHOT_SPREADS[player.getShotLevel() - 1])
             shots.add(new Shot(player.getX() + 42, player.getY() + 12, velocity));
+        if (shotPlayer != null) {
+            shotPlayer.playOnce();
+        }
     }
 
     protected void paintComponent(Graphics graphics) {
