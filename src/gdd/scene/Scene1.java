@@ -22,7 +22,7 @@ import java.util.Random;
 import javax.swing.*;
 
 public class Scene1 extends JPanel {
-    protected static final int FLIGHT_FRAMES = 60 * 30;
+    protected static final int FLIGHT_FRAMES = 60 * 60 * 5;
     private static final long STEP_NANOS = 1_000_000_000L / 60;
     private static final long MAX_ELAPSED_NANOS = STEP_NANOS * 5;
     private static final int[][] SHOT_SPREADS = { { 0 }, { -2, 2 }, { -3, 0, 3 }, { -5, -2, 2, 5 } };
@@ -782,9 +782,9 @@ public class Scene1 extends JPanel {
 
     private void drawEnd(Graphics2D g) {
         boolean isVictory = endMessage.startsWith("GALAXY SAVED");
-        Color overlayColor = isVictory 
-            ? new Color(12, 6, 26, 215) // Deep space violet overlay
-            : new Color(26, 6, 6, 215);  // Crimson dark overlay
+        Color overlayColor = isVictory
+                ? new Color(12, 6, 26, 215) // Deep space violet overlay
+                : new Color(26, 6, 6, 215); // Crimson dark overlay
         g.setColor(overlayColor);
         g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
 
@@ -801,9 +801,9 @@ public class Scene1 extends JPanel {
         // Pulsing border glow
         double waveVal = Math.sin(System.currentTimeMillis() * 0.004);
         int borderAlpha = 110 + (int) (40 * waveVal);
-        Color borderColor = isVictory 
-            ? new Color(0, 255, 255, borderAlpha) 
-            : new Color(255, 50, 50, borderAlpha);
+        Color borderColor = isVictory
+                ? new Color(0, 255, 255, borderAlpha)
+                : new Color(255, 50, 50, borderAlpha);
         g.setColor(borderColor);
         g.setStroke(new BasicStroke(3));
         g.drawRoundRect(cardX, cardY, cardW, cardH, 20, 20);
