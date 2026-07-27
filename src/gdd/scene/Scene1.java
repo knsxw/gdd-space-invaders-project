@@ -68,6 +68,7 @@ public class Scene1 extends JPanel {
     protected AudioPlayer shotPlayer;
     protected AudioPlayer explodePlayer;
     protected AudioPlayer powerupPlayer;
+    protected AudioPlayer bossMusicPlayer;
 
     public Scene1(Game game) {
         this(game, 1);
@@ -88,6 +89,7 @@ public class Scene1 extends JPanel {
             shotPlayer = new AudioPlayer("src/audio/shot.wav", false, false);
             explodePlayer = new AudioPlayer("src/audio/explode.wav", false, false);
             powerupPlayer = new AudioPlayer("src/audio/powerup.wav", false, false);
+            bossMusicPlayer = new AudioPlayer("src/audio/boss.wav", false, true);
         } catch (Exception e) {
             System.err.println("Error initializing audio players: " + e.getMessage());
             e.printStackTrace();
@@ -129,6 +131,13 @@ public class Scene1 extends JPanel {
                 System.err.println("Error starting stage music: " + e.getMessage());
             }
         }
+        if (bossMusicPlayer != null) {
+            try {
+                bossMusicPlayer.stop();
+            } catch (Exception e) {
+                System.err.println("Error stopping boss music: " + e.getMessage());
+            }
+        }
     }
 
     public Player getPlayer() {
@@ -149,11 +158,20 @@ public class Scene1 extends JPanel {
                 System.err.println("Error stopping stage music: " + e.getMessage());
             }
         }
+        if (bossMusicPlayer != null) {
+            try {
+                bossMusicPlayer.stop();
+            } catch (Exception e) {
+                System.err.println("Error stopping boss music: " + e.getMessage());
+            }
+        }
     }
 
     private void cycle() {
-        if (!playing)
+        if (!playing) {
+            repaint();
             return;
+        }
         long now = System.nanoTime();
         long elapsed = Math.min(now - lastTickNanos, MAX_ELAPSED_NANOS);
         lastTickNanos = now;
@@ -197,6 +215,20 @@ public class Scene1 extends JPanel {
             shots.clear();
             bossSpawned = true;
             bossIntroFrames = 150;
+            if (bgMusicPlayer != null) {
+                try {
+                    bgMusicPlayer.stop();
+                } catch (Exception e) {
+                    System.err.println("Error stopping stage music: " + e.getMessage());
+                }
+            }
+            if (bossMusicPlayer != null) {
+                try {
+                    bossMusicPlayer.restart();
+                } catch (Exception e) {
+                    System.err.println("Error starting boss music: " + e.getMessage());
+                }
+            }
         }
         if (bossIntroFrames > 0) {
             bossIntroFrames--;
@@ -382,7 +414,6 @@ public class Scene1 extends JPanel {
     private void end(String text) {
         playing = false;
         endMessage = text;
-        timer.stop();
     }
 
     private boolean hit(int ax, int ay, int aw, int ah, int bx, int by, int bw, int bh) {
@@ -750,12 +781,116 @@ public class Scene1 extends JPanel {
     }
 
     private void drawEnd(Graphics2D g) {
-        g.setColor(new Color(0, 0, 0, 190));
+        boolean isVictory = endMessage.startsWith("GALAXY SAVED");
+        Color overlayColor = isVictory 
+            ? new Color(12, 6, 26, 215) // Deep space violet overlay
+            : new Color(26, 6, 6, 215);  // Crimson dark overlay
+        g.setColor(overlayColor);
         g.fillRect(0, 0, BOARD_WIDTH, BOARD_HEIGHT);
+
+        // Center card dimensions
+        int cardW = 550;
+        int cardH = 360;
+        int cardX = (BOARD_WIDTH - cardW) / 2;
+        int cardY = (BOARD_HEIGHT - cardH) / 2;
+
+        // Draw Card panel
+        g.setColor(new Color(15, 15, 25, 235));
+        g.fillRoundRect(cardX, cardY, cardW, cardH, 20, 20);
+
+        // Pulsing border glow
+        double waveVal = Math.sin(System.currentTimeMillis() * 0.004);
+        int borderAlpha = 110 + (int) (40 * waveVal);
+        Color borderColor = isVictory 
+            ? new Color(0, 255, 255, borderAlpha) 
+            : new Color(255, 50, 50, borderAlpha);
+        g.setColor(borderColor);
+        g.setStroke(new BasicStroke(3));
+        g.drawRoundRect(cardX, cardY, cardW, cardH, 20, 20);
+        g.setStroke(new BasicStroke(1));
+
+        // Draw Title text
+        String title = isVictory ? "VICTORY" : "DEFEAT";
+        g.setFont(new Font("Dialog", Font.BOLD, 46));
+        int tw = g.getFontMetrics().stringWidth(title);
+        int tx = cardX + (cardW - tw) / 2;
+        int ty = cardY + 75;
+
+        // Draw neon glow for title
+        Color glowColor = isVictory ? new Color(0, 255, 255, 45) : new Color(255, 0, 0, 45);
+        g.setColor(glowColor);
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dy = -3; dy <= 3; dy++) {
+                if (dx != 0 || dy != 0) {
+                    g.drawString(title, tx + dx, ty + dy);
+                }
+            }
+        }
+
+        // Draw main title text
         g.setColor(Color.WHITE);
-        g.setFont(END_FONT);
-        int width = g.getFontMetrics().stringWidth(endMessage);
-        g.drawString(endMessage, (BOARD_WIDTH - width) / 2, BOARD_HEIGHT / 2);
+        g.drawString(title, tx, ty);
+
+        // Draw Sub-banner status
+        String subBanner = isVictory ? "GALAXY SAVED!" : "MISSION FAILED";
+        g.setFont(new Font("Dialog", Font.BOLD, 22));
+        int sbw = g.getFontMetrics().stringWidth(subBanner);
+        g.setColor(isVictory ? new Color(50, 255, 150) : new Color(255, 80, 80));
+        g.drawString(subBanner, cardX + (cardW - sbw) / 2, cardY + 125);
+
+        // Separators
+        g.setColor(new Color(255, 255, 255, 30));
+        g.drawLine(cardX + 50, cardY + 160, cardX + cardW - 50, cardY + 160);
+        g.drawLine(cardX + cardW / 2, cardY + 180, cardX + cardW / 2, cardY + 260);
+
+        // Left column: Final Score
+        g.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g.setColor(new Color(200, 200, 220));
+        g.drawString("FINAL SCORE", cardX + 70, cardY + 200);
+
+        g.setFont(new Font("Monospaced", Font.BOLD, 36));
+        g.setColor(Color.YELLOW);
+        String scoreStr = String.format("%06d", score);
+        g.drawString(scoreStr, cardX + 70, cardY + 245);
+
+        // Right column: Rating Rank
+        g.setFont(new Font("Monospaced", Font.BOLD, 18));
+        g.setColor(new Color(200, 200, 220));
+        g.drawString("RATING", cardX + cardW / 2 + 60, cardY + 200);
+
+        // Calculate Rating
+        String rank;
+        Color rankColor;
+        if (score >= 12000) {
+            rank = "SS";
+            rankColor = new Color(255, 215, 0); // Gold
+        } else if (score >= 9000) {
+            rank = "S";
+            rankColor = new Color(255, 115, 220); // Pink/Magenta
+        } else if (score >= 6000) {
+            rank = "A";
+            rankColor = new Color(50, 220, 255); // Cyan
+        } else if (score >= 3000) {
+            rank = "B";
+            rankColor = new Color(50, 255, 150); // Lime Green
+        } else {
+            rank = "C";
+            rankColor = new Color(180, 180, 180); // Gray
+        }
+
+        g.setFont(new Font("Dialog", Font.BOLD, 54));
+        g.setColor(rankColor);
+        int rw = g.getFontMetrics().stringWidth(rank);
+        g.drawString(rank, cardX + cardW / 2 + 60 + (110 - rw) / 2, cardY + 252);
+
+        // Footer prompt with pulsing text alpha
+        int promptAlpha = 130 + (int) (125 * Math.sin(System.currentTimeMillis() * 0.005));
+        promptAlpha = Math.max(10, Math.min(255, promptAlpha));
+        g.setColor(new Color(200, 220, 255, promptAlpha));
+        g.setFont(new Font("Dialog", Font.BOLD, 16));
+        String promptStr = "PRESS ENTER TO RETURN TO TITLE";
+        int pw = g.getFontMetrics().stringWidth(promptStr);
+        g.drawString(promptStr, cardX + (cardW - pw) / 2, cardY + 315);
     }
 
     private class Controls extends KeyAdapter {
